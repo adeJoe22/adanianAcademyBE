@@ -4,6 +4,7 @@ import {
   forgotPasswordController,
   getUserProfileController,
   loginController,
+  logoutController,
   registerController,
   removeUserController,
   resetPasswordController,
@@ -14,6 +15,7 @@ import { isAuthorized } from '../middlewares/auth';
 import {
   createUserProfileValidation,
   loginValidation,
+  refreshTokenValidation,
   registerValidation,
   resetPasswordValidation,
   sendVerificationMailValidation,
@@ -28,7 +30,7 @@ router.post('/register', registerValidation, registerController);
 router.get('/verify-email/:userId/:token', verifyUserMailValidation, verifyEmailController);
 router.post('/create-profile/:userId', createUserProfileValidation, createUserProfileController);
 router.post('/login', loginValidation, loginController);
-
+router.post('/logout', refreshTokenValidation, logoutController);
 router.get('/me', isAuthorized, getUserProfileController);
 router.patch('/updateUser/:userId', isAuthorized, updateUserValidation, updateUserProfileController);
 router.delete('/deleteUser/:userId', isAuthorized, userIdValidation, removeUserController);

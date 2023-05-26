@@ -20,6 +20,10 @@ export const environmentVariable = {
   GOOGLE_REFRESHTOKEN: process.env.GOOGLE_REFRESHTOKEN as string,
   GOOGLE_REDIRECT: process.env.GOOGLE_REDIRECT as string,
   RESET_PASSWORD_EXPIRE_TIME: process.env.RESET_PASSWORD_EXPIRE_TIME as string,
+  PASSPORT_GOOGLE_CLIENT_ID: process.env.PASSPORT_GOOGLE_CLIENT_ID as string,
+  PASSPORT_GOOGLE_CLIENT_SECRET: process.env.PASSPORT_GOOGLE_CLIENT_SECRET as string,
+  SESSION_KEY: process.env.SESSION_KEY as string,
+  ADMIN_EMAILS: process.env.ADMIN_EMAILS,
 };
 
 export default environmentVariable;

@@ -79,7 +79,7 @@ TokenSchema.methods.generatePasswordReset = function () {
 };
 
 TokenSchema.post('save', function () {
-  console.log('Token is been Save ', this);
+  console.log('Token is been Saved ', this);
 });
 
 const TokenModel = model<ITokenDocument>('Token', TokenSchema);

@@ -33,6 +33,11 @@ export interface IUser extends Document {
   emailVerificationLinkToken?: string;
   cloudinary_id?: string;
   _doc?: any;
+  registrationType?: string;
+  googleID?: string;
+  referralCode?: string;
+  generateReferralCode?: string;
+  createdAt?: string;
 }
 
 export interface IRequestUser extends Request {

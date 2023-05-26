@@ -15,16 +15,12 @@ const userSchema: Schema<IUserDocument> = new Schema(
   {
     firstName: {
       type: String,
-      // required: [true, "Please provide name"],
     },
     lastName: {
       type: String,
-
-      // required: [true, "Please provide surname"],
     },
     email: {
       type: String,
-      // required: [true, "Please provide email"],
       // a regular expression to validate an email address(stackoverflow)
       match: [
         /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
@@ -47,10 +43,9 @@ const userSchema: Schema<IUserDocument> = new Schema(
       minlength: [6, 'Password must be more than 6 characters'],
       trim: true,
     },
-    studentId: { type: String, default: '' },
+    studentId: { type: String },
     role: {
       type: String,
-
       lowercase: true,
       enum: [authRoles.user, authRoles.admin, authRoles.superAdmin],
       default: authRoles.user,
@@ -76,10 +71,8 @@ const userSchema: Schema<IUserDocument> = new Schema(
     computer_skill_level: { type: String },
     do_you_have_access_to_laptop: {
       type: Boolean,
-
-      default: false,
     },
-    have_you_taken_any_tech_training: { type: Boolean, default: false },
+    have_you_taken_any_tech_training: { type: Boolean },
     isVerified: {
       type: Boolean,
       default: false,
@@ -91,7 +84,6 @@ const userSchema: Schema<IUserDocument> = new Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'active'],
       default: 'pending',
       required: false,
       trim: true,
@@ -121,6 +113,14 @@ const userSchema: Schema<IUserDocument> = new Schema(
       type: Date,
       required: false,
     },
+    registrationType: {
+      type: String,
+      default: 'email',
+    },
+    googleID: { type: String },
+    referralCode: { type: String },
+    generateReferralCode: { type: String },
+    createdAt: { type: Date },
   },
   {
     timestamps: true,

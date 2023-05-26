@@ -4,6 +4,7 @@ import {
   createUserProfileService,
   forgotPasswordService,
   getUserProfileService,
+  logOutService,
   loginService,
   refreshTokenService,
   registerService,
@@ -22,6 +23,8 @@ export const createUserProfileController = (req: Request, res: Response, next: N
   createUserProfileService(req, res, next);
 
 export const loginController = (req: Request, res: Response, next: NextFunction) => loginService(req, res, next);
+
+export const logoutController = (req: Request, res: Response, next: NextFunction) => logOutService(req, res, next);
 
 export const getUserProfileController = (req: AuthenticatedRequestBody<IUser>, res: Response, next: NextFunction) =>
   getUserProfileService(req, res, next);

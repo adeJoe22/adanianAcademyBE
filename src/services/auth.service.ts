@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction, RequestHandler, response } from 'express';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { SignOptions, Secret } from 'jsonwebtoken';
 import { environmentVariable } from '../config';
 import TokenModel from '../models/Token.model';
@@ -8,9 +8,20 @@ import { asyncHandler } from './../utils/asyncHandler';
 import verifyRefreshToken from '../middlewares/auth/verifyRefreshToken';
 import { sendConfirmResetPasswordEmail, sendResetPasswordEmail, verifyUserEmail } from '../utils/emailConfig';
 import { AuthenticatedRequestBody, IUser } from '../interfaces';
+import { customAlphabet } from 'nanoid';
+import ReferralModel from '../models/Referral.model';
 
 export const registerService = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   const { email } = req.body || {};
+
+  // const checkExists = await UserModel.findOne({ email });
+
+  // if (checkExists && checkExists?.isVerified === false) {
+  //   if (checkExists && checkExists?.registrationType === 'google') {
+  //     next(new AppError({ message: 'User already exists, login or use another email', httpCode: HttpCode.NOT_FOUND }));
+  //   }
+  //   await checkExists.delete();
+  // }
 
   const newUser = new UserModel({ email });
   const user = await newUser.save();
@@ -62,6 +73,7 @@ export const registerService = asyncHandler(async (req: Request, res: Response, 
   };
 
   return res.status(201).json({
+    message: `Email has been sent to ${user!.email}`,
     data,
   });
 });
@@ -98,7 +110,6 @@ export const verifyEmailService = asyncHandler(async (req: Request, res: Respons
 
   // Verify the user
   user!.isVerified = true;
-  user!.status = 'active';
   await user!.save();
   await emailVerificationToken!.delete();
 
@@ -126,7 +137,12 @@ export const createUserProfileService = asyncHandler(async (req: Request, res: R
     do_you_have_access_to_laptop,
     have_you_taken_any_tech_training,
     profileImage,
+    referralCode,
+    studentId,
   } = req.body;
+
+  // Generate IDs
+  const nanoid = customAlphabet('1234567890abcdef', 10);
 
   const user = await UserModel.findById(req.params.userId);
   if (!user) {
@@ -154,29 +170,53 @@ export const createUserProfileService = asyncHandler(async (req: Request, res: R
   user!.do_you_have_access_to_laptop = do_you_have_access_to_laptop;
   user!.have_you_taken_any_tech_training = have_you_taken_any_tech_training;
   user!.profileImage = firstName.charAt(0).toUpperCase() + lastName.charAt(0).toUpperCase();
+  user!.studentId = nanoid(6);
+  user!.generateReferralCode = nanoid(6);
+  user!.status = 'active';
 
+  let refCode = new ReferralModel({
+    referrer: user!._id,
+    name: `${user!.firstName}, ${user!.lastName}`,
+    referralCode: user!.generateReferralCode,
+  });
+
+  const enteredRefCode = await ReferralModel.findOne({ referralCode });
+  if (enteredRefCode) {
+    await refCode.updateOne({
+      $push: {
+        list_of_referrals: {
+          name: user!.firstName,
+          userId: user!._id,
+          createdAt: user!.createdAt,
+        },
+      },
+      new: true,
+    });
+  }
+
+  // Save uploaded profile and referral Code
   const uploadUserProfile = await user!.save();
+  const referralStore = await refCode!.save();
 
   res.status(200).json({
     message: 'Successful, proceed to login',
     data: uploadUserProfile,
+    referralStore,
   });
 });
+
 export const loginService = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
 
-  const user = await UserModel.findOne({
-    email: new RegExp(`^${email}$`, 'i'),
-  });
+  const user = await UserModel.findOne({ email });
 
-  console.log(user!.email, user!._id);
-  if (!user) next(new AppError({ message: 'Invalid email', httpCode: HttpCode.UNAUTHORIZED }));
+  if (!user) next(new AppError({ message: 'This email and password does not exist', httpCode: HttpCode.UNAUTHORIZED }));
 
   const checkPassword = await user!.comparePassword(password);
   if (!checkPassword)
     next(
       new AppError({
-        message: 'Invalid email',
+        message: 'This email and password does not exist',
         httpCode: HttpCode.UNAUTHORIZED,
       })
     );
@@ -373,13 +413,16 @@ export const removeUserService = asyncHandler(
     });
   }
 );
+
 export const logOutService: RequestHandler = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   const { refreshToken } = req.body;
 
   const token = await TokenModel.findOne({ refreshToken });
+  console.log('the token', token);
   if (!token) next(new AppError({ message: 'Failed', httpCode: HttpCode.BAD_REQUEST }));
 
   const userId = await verifyRefreshToken(refreshToken);
+  console.log(userId);
   if (!userId) next(new AppError({ message: 'Failed', httpCode: HttpCode.BAD_REQUEST }));
 
   // Clear the refresh token
